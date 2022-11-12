@@ -10,8 +10,8 @@ import ast
 import datetime
 
 app = Flask(__name__)
-app.config['MONGO_URI'] = 'mongodb+srv://Jeyanth:jeyanth2425@cluster0.hyf6v8i.mongodb.net/wasteManagement?retryWrites=true&w=majority'
-#app.config['MONGO_URI'] = 'mongodb://localhost:27017/wasteManagement'
+#app.config['MONGO_URI'] = 'mongodb+srv://Jeyanth:jeyanth2425@cluster0.hyf6v8i.mongodb.net/wasteManagement?retryWrites=true&w=majority'
+app.config['MONGO_URI'] = 'mongodb://localhost:27017/wasteManagement'
 mongo = PyMongo(app)
 
 
@@ -311,6 +311,25 @@ def getAllPlaceFeedback(mainPlace):
     for i in detail:
         holder.append({"Name":i["Name"],"Main Area":i["Main Area"],"Lane":i["Lane"],"Feedback":i["Feedback"],"Feedback Type":i["Feedback Type "],"Rating":i["Rating"]})
     return (holder)
+
+@app.route('/percentage/feedback/', methods = ['GET'])
+def getAllPlaceFeedbackPercentage():
+    holder = list()
+    currentCollection = mongo.db.feedback
+    data = currentCollection.aggregate([{"$group" : { "_id" : "$Main Area", "Data": { "$push": "$$ROOT" } }}])
+    for i in data:
+        num = 0
+        holder1 = list()
+        fullCount = len(i["Data"])
+        for x in i["Data"]:
+            print(x)
+            if x["Feedback Type "] == "Positive":
+                num = num+1
+        positive = ((num/fullCount)*100)
+        negative = 100 - positive
+        holder.append({"Place":i["_id"],"Negative":negative,"Positive":positive})
+    return (holder)
+
 
 
 
